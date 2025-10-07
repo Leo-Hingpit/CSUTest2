@@ -7,16 +7,35 @@ function Navigation() {
   return (
     <Navbar bg="dark" variant="dark" expand="lg" className="mb-4">
       <Container>
-        <Navbar.Brand as={Link} to="/">Request Manager</Navbar.Brand>
+        <Navbar.Brand as={Link} to="/">HOME</Navbar.Brand>
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav>
             <Nav.Link as={Link} to="/">Requests</Nav.Link>
-            <Nav.Link as={Link} to="/create">Create Request</Nav.Link>
+            <Nav.Link as={Link} to="/create">Request Form</Nav.Link>
+            <Nav.Link as={Link} to="/about">About</Nav.Link> {/* 👈 Added About link */}
           </Nav>
         </Navbar.Collapse>
       </Container>
     </Navbar>
+  );
+}
+
+// About page component
+function AboutPage() {
+  return (
+    <Container>
+      <Card>
+        <Card.Header as="h5">About This System</Card.Header>
+        <Card.Body>
+          <Card.Text>
+            <strong>CARAGA STATE UNIVERSITY - Cabadbaran Campus</strong> aims to digitalize its internal request handling
+            and student service system. Currently, various offices such as the <strong>Registrar, IT, Library, and Student Affairs</strong>
+            handle student requests manually, causing delays and redundant work.
+          </Card.Text>
+        </Card.Body>
+      </Card>
+    </Container>
   );
 }
 
@@ -153,17 +172,14 @@ function RequestForm({ requests, addRequest, updateRequest }) {
 // Main App
 export default function App() {
   const [requests, setRequests] = useState(() => {
-    // Load from localStorage if you want persistence
     const saved = localStorage.getItem('requests');
     return saved ? JSON.parse(saved) : [];
   });
 
-  // Save requests to localStorage on change
   useEffect(() => {
     localStorage.setItem('requests', JSON.stringify(requests));
   }, [requests]);
 
-  // Create new request
   const addRequest = (request) => {
     const newRequest = {
       id: requests.length > 0 ? requests[requests.length - 1].id + 1 : 1,
@@ -172,7 +188,6 @@ export default function App() {
     setRequests([...requests, newRequest]);
   };
 
-  // Update existing request
   const updateRequest = (updatedRequest) => {
     setRequests(requests.map((r) => (r.id === updatedRequest.id ? updatedRequest : r)));
   };
@@ -185,6 +200,7 @@ export default function App() {
         <Route path="/create" element={<RequestForm addRequest={addRequest} requests={requests} />} />
         <Route path="/edit/:id" element={<RequestForm updateRequest={updateRequest} requests={requests} />} />
         <Route path="/details/:id" element={<RequestDetails requests={requests} />} />
+        <Route path="/about" element={<AboutPage />} /> {/* 👈 Route for About */}
       </Routes>
     </Router>
   );
