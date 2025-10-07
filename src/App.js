@@ -16,7 +16,7 @@ import {
   Table,
   Card
 } from 'react-bootstrap';
-import './App.css'; // 👈 For optional animation styles
+import './App.css'; //  For optional animation styles
 
 // Navbar component
 function Navigation() {
@@ -36,7 +36,7 @@ function Navigation() {
   );
 }
 
-// 🎯 NEW Home page component
+// NEW Home page component
 function HomePage() {
   return (
     <Container className="text-center mt-5">
