@@ -1,6 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, useNavigate, useParams } from 'react-router-dom';
-import { Container, Navbar, Nav, Form, Button, Table, Card } from 'react-bootstrap';
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Link,
+  useNavigate,
+  useParams
+} from 'react-router-dom';
+import {
+  Container,
+  Navbar,
+  Nav,
+  Form,
+  Button,
+  Table,
+  Card
+} from 'react-bootstrap';
+import './App.css'; // 👈 For optional animation styles
 
 // Navbar component
 function Navigation() {
@@ -11,13 +27,22 @@ function Navigation() {
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav>
-            <Nav.Link as={Link} to="/">Requests</Nav.Link>
-            <Nav.Link as={Link} to="/create">Request Form</Nav.Link>
-            <Nav.Link as={Link} to="/about">About</Nav.Link> {/* 👈 Added About link */}
+            <Nav.Link as={Link} to="/requests">Requests</Nav.Link>
+            <Nav.Link as={Link} to="/about">About</Nav.Link>
           </Nav>
         </Navbar.Collapse>
       </Container>
     </Navbar>
+  );
+}
+
+// 🎯 NEW Home page component
+function HomePage() {
+  return (
+    <Container className="text-center mt-5">
+      <h1 className="floating-title">CSU Cabadbaran Campus Service Portal</h1>
+      <p className="floating-subtitle">Streamlining internal requests for a more efficient student experience.</p>
+    </Container>
   );
 }
 
@@ -39,12 +64,54 @@ function AboutPage() {
   );
 }
 
-// Request List page
-function RequestList({ requests }) {
+// Combined Request Form + List page
+function RequestDashboard({ requests, addRequest }) {
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
   const navigate = useNavigate();
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (title.trim() === '') {
+      alert('Title is required');
+      return;
+    }
+
+    addRequest({ title, description });
+    setTitle('');
+    setDescription('');
+  };
 
   return (
     <Container>
+      <h2>Create Request</h2>
+      <Form onSubmit={handleSubmit}>
+        <Form.Group className="mb-3" controlId="formTitle">
+          <Form.Label>Title</Form.Label>
+          <Form.Control
+            type="text"
+            placeholder="Enter request title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+          />
+        </Form.Group>
+
+        <Form.Group className="mb-3" controlId="formDescription">
+          <Form.Label>Description</Form.Label>
+          <Form.Control
+            as="textarea"
+            rows={3}
+            placeholder="Enter description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+          />
+        </Form.Group>
+
+        <Button variant="primary" type="submit">Submit</Button>
+      </Form>
+
+      <hr />
+
       <h2>Request List</h2>
       {requests.length === 0 ? (
         <p>No requests found.</p>
@@ -63,8 +130,13 @@ function RequestList({ requests }) {
                 <td>{req.id}</td>
                 <td>{req.title}</td>
                 <td>
-                  <Button variant="info" size="sm" onClick={() => navigate(`/details/${req.id}`)}>View</Button>{' '}
-                  <Button variant="warning" size="sm" onClick={() => navigate(`/edit/${req.id}`)}>Edit</Button>
+                  <Button
+                    variant="info"
+                    size="sm"
+                    onClick={() => navigate(`/details/${req.id}`)}
+                  >
+                    View
+                  </Button>
                 </td>
               </tr>
             ))}
@@ -85,7 +157,7 @@ function RequestDetails({ requests }) {
     return (
       <Container>
         <p>Request not found!</p>
-        <Button onClick={() => navigate('/')}>Back to List</Button>
+        <Button onClick={() => navigate('/requests')}>Back to List</Button>
       </Container>
     );
   }
@@ -97,74 +169,9 @@ function RequestDetails({ requests }) {
         <Card.Body>
           <Card.Title>{request.title}</Card.Title>
           <Card.Text>{request.description}</Card.Text>
-          <Button variant="secondary" onClick={() => navigate('/')}>Back to List</Button>
+          <Button variant="secondary" onClick={() => navigate('/requests')}>Back to List</Button>
         </Card.Body>
       </Card>
-    </Container>
-  );
-}
-
-// Request Form page (for create and edit)
-function RequestForm({ requests, addRequest, updateRequest }) {
-  const { id } = useParams();
-  const isEdit = Boolean(id);
-  const navigate = useNavigate();
-
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-
-  useEffect(() => {
-    if (isEdit) {
-      const reqToEdit = requests.find((r) => r.id === parseInt(id));
-      if (reqToEdit) {
-        setTitle(reqToEdit.title);
-        setDescription(reqToEdit.description);
-      }
-    }
-  }, [id, isEdit, requests]);
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (title.trim() === '') {
-      alert('Title is required');
-      return;
-    }
-    if (isEdit) {
-      updateRequest({ id: parseInt(id), title, description });
-    } else {
-      addRequest({ title, description });
-    }
-    navigate('/');
-  };
-
-  return (
-    <Container>
-      <h2>{isEdit ? 'Edit Request' : 'Create Request'}</h2>
-      <Form onSubmit={handleSubmit}>
-        <Form.Group className="mb-3" controlId="formTitle">
-          <Form.Label>Title</Form.Label>
-          <Form.Control 
-            type="text" 
-            placeholder="Enter request title" 
-            value={title} 
-            onChange={(e) => setTitle(e.target.value)} />
-        </Form.Group>
-
-        <Form.Group className="mb-3" controlId="formDescription">
-          <Form.Label>Description</Form.Label>
-          <Form.Control 
-            as="textarea" 
-            rows={3} 
-            placeholder="Enter description" 
-            value={description} 
-            onChange={(e) => setDescription(e.target.value)} />
-        </Form.Group>
-
-        <Button variant="primary" type="submit">
-          {isEdit ? 'Update' : 'Create'}
-        </Button>{' '}
-        <Button variant="secondary" onClick={() => navigate('/')}>Cancel</Button>
-      </Form>
     </Container>
   );
 }
@@ -188,19 +195,14 @@ export default function App() {
     setRequests([...requests, newRequest]);
   };
 
-  const updateRequest = (updatedRequest) => {
-    setRequests(requests.map((r) => (r.id === updatedRequest.id ? updatedRequest : r)));
-  };
-
   return (
     <Router>
       <Navigation />
       <Routes>
-        <Route path="/" element={<RequestList requests={requests} />} />
-        <Route path="/create" element={<RequestForm addRequest={addRequest} requests={requests} />} />
-        <Route path="/edit/:id" element={<RequestForm updateRequest={updateRequest} requests={requests} />} />
+        <Route path="/" element={<HomePage />} />
+        <Route path="/requests" element={<RequestDashboard requests={requests} addRequest={addRequest} />} />
         <Route path="/details/:id" element={<RequestDetails requests={requests} />} />
-        <Route path="/about" element={<AboutPage />} /> {/* 👈 Route for About */}
+        <Route path="/about" element={<AboutPage />} />
       </Routes>
     </Router>
   );
