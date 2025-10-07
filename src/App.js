@@ -16,7 +16,7 @@ import {
   Table,
   Card
 } from 'react-bootstrap';
-import './App.css'; //  For optional animation styles
+import './App.css'; // Optional animation styles
 
 // Navbar component
 function Navigation() {
@@ -36,7 +36,7 @@ function Navigation() {
   );
 }
 
-// NEW Home page component
+// Home page component
 function HomePage() {
   return (
     <Container className="text-center mt-5">
@@ -64,7 +64,7 @@ function AboutPage() {
   );
 }
 
-// Combined Request Form + List page
+// Request Dashboard: Form + List
 function RequestDashboard({ requests, addRequest }) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -121,6 +121,7 @@ function RequestDashboard({ requests, addRequest }) {
             <tr>
               <th>ID</th>
               <th>Title</th>
+              <th>Status</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -129,6 +130,7 @@ function RequestDashboard({ requests, addRequest }) {
               <tr key={req.id}>
                 <td>{req.id}</td>
                 <td>{req.title}</td>
+                <td>{req.status}</td>
                 <td>
                   <Button
                     variant="info"
@@ -147,11 +149,14 @@ function RequestDashboard({ requests, addRequest }) {
   );
 }
 
-// Request Details page
-function RequestDetails({ requests }) {
+// Request Details Page
+function RequestDetails({ requests, updateRequest }) {
   const { id } = useParams();
-  const request = requests.find((r) => r.id === parseInt(id));
   const navigate = useNavigate();
+  const request = requests.find((r) => r.id === parseInt(id));
+
+  const [status, setStatus] = useState(request?.status || 'Pending');
+  const [remarks, setRemarks] = useState(request?.remarks || '');
 
   if (!request) {
     return (
@@ -162,13 +167,46 @@ function RequestDetails({ requests }) {
     );
   }
 
+  const handleSave = () => {
+    const updatedRequest = {
+      ...request,
+      status,
+      remarks
+    };
+    updateRequest(updatedRequest);
+    alert('Changes saved!');
+  };
+
   return (
     <Container>
       <Card>
         <Card.Header>Request Details - ID: {request.id}</Card.Header>
         <Card.Body>
           <Card.Title>{request.title}</Card.Title>
-          <Card.Text>{request.description}</Card.Text>
+          <Card.Text><strong>Description:</strong> {request.description}</Card.Text>
+
+          <Form.Group className="mb-3">
+            <Form.Label>Status</Form.Label>
+            <Form.Select value={status} onChange={(e) => setStatus(e.target.value)}>
+              <option value="Pending">Pending</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Completed">Completed</option>
+              <option value="Rejected">Rejected</option>
+            </Form.Select>
+          </Form.Group>
+
+          <Form.Group className="mb-3">
+            <Form.Label>Remarks</Form.Label>
+            <Form.Control
+              as="textarea"
+              rows={3}
+              placeholder="Enter remarks here"
+              value={remarks}
+              onChange={(e) => setRemarks(e.target.value)}
+            />
+          </Form.Group>
+
+          <Button variant="primary" onClick={handleSave} className="me-2">Save</Button>
           <Button variant="secondary" onClick={() => navigate('/requests')}>Back to List</Button>
         </Card.Body>
       </Card>
@@ -176,7 +214,7 @@ function RequestDetails({ requests }) {
   );
 }
 
-// Main App
+// Main App Component
 export default function App() {
   const [requests, setRequests] = useState(() => {
     const saved = localStorage.getItem('requests');
@@ -190,9 +228,18 @@ export default function App() {
   const addRequest = (request) => {
     const newRequest = {
       id: requests.length > 0 ? requests[requests.length - 1].id + 1 : 1,
+      status: 'Pending',  // default status
+      remarks: '',        // default remarks
       ...request
     };
     setRequests([...requests, newRequest]);
+  };
+
+  const updateRequest = (updatedRequest) => {
+    const updatedList = requests.map((req) =>
+      req.id === updatedRequest.id ? updatedRequest : req
+    );
+    setRequests(updatedList);
   };
 
   return (
@@ -201,7 +248,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/requests" element={<RequestDashboard requests={requests} addRequest={addRequest} />} />
-        <Route path="/details/:id" element={<RequestDetails requests={requests} />} />
+        <Route path="/details/:id" element={<RequestDetails requests={requests} updateRequest={updateRequest} />} />
         <Route path="/about" element={<AboutPage />} />
       </Routes>
     </Router>
